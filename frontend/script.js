@@ -1,6 +1,31 @@
 const button = document.getElementById("askBtn");
 button.addEventListener("click", askQuestion);
+document
+    .getElementById("question")
+    .addEventListener("keydown", (e) => {
 
+        if (e.key === "Enter") {
+            askQuestion();
+        }
+
+    });
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (SpeechRecognition) {
+
+    recognition = new SpeechRecognition();
+
+    recognition.lang = "en-IN";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = true;
+
+}
 // ============================================
 // VOICE STATE
 // ============================================
@@ -112,7 +137,105 @@ function unlockAudio() {
 }
 document.addEventListener("click", unlockAudio, { once: true });
 document.addEventListener("keydown", unlockAudio, { once: true });
+const micBtn = document.getElementById("micBtn");
+const status = document.getElementById("listening-status");
 
+let isListening = false;
+
+if (recognition) {
+
+    micBtn.addEventListener("click", () => {
+
+        if (!isListening) {
+
+            recognition.start();
+
+        } else {
+
+            recognition.stop();
+
+        }
+
+    });
+
+    recognition.onstart = () => {
+
+    isListening = true;
+
+    micBtn.classList.add("recording");
+
+    status.innerText = "Listening...";
+
+    document.getElementById("question").disabled = true;
+
+    document.getElementById("answer").innerText = "🎤 Listening...";
+
+};
+
+    recognition.onend = () => {
+
+    isListening = false;
+
+    micBtn.classList.remove("recording");
+
+    status.innerText = "";
+
+    document.getElementById("question").disabled = false;
+
+};
+
+    ;
+
+    recognition.onresult = (event) => {
+
+        let transcript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+
+            transcript += event.results[i][0].transcript;
+
+        }
+
+        document.getElementById("question").value = transcript;
+
+        if (event.results[event.results.length - 1].isFinal &&
+    transcript.trim() !== ""
+) {
+    askQuestion();
+}
+
+    };recognition.onresult = (event) => {
+
+    let transcript = "";
+
+    // Build the full transcript every time
+    for (let i = 0; i < event.results.length; i++) {
+
+        transcript += event.results[i][0].transcript;
+
+    }
+
+    document.getElementById("question").value = transcript;
+
+    // Send only once the final result is ready
+    if (
+        event.results[event.results.length - 1].isFinal &&
+        transcript.trim() !== ""
+    ) {
+
+        askQuestion();
+
+    }
+
+};
+
+} else {
+
+    micBtn.disabled = true;
+
+    micBtn.innerText = "❌";
+
+}
 // ============================================
 // TOGGLE CONTROLS
 // ============================================
