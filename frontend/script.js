@@ -21,9 +21,17 @@ if (SpeechRecognition) {
 
     recognition.lang = "en-IN";
 
-    recognition.continuous = false;
+    recognition.continuous = true;
 
     recognition.interimResults = true;
+
+    recognition.onerror = (event) => {
+    console.error("SpeechRecognition Error:", event.error);
+
+    isListening = false;
+    micBtn.classList.remove("recording");
+    status.innerText = "Error: " + event.error;
+};
 
 }
 // ============================================
@@ -173,6 +181,7 @@ if (recognition) {
 };
 
     recognition.onend = () => {
+    console.log("Recognition ended");
 
     isListening = false;
 
@@ -184,47 +193,40 @@ if (recognition) {
 
 };
 
-    ;
+
 
     recognition.onresult = (event) => {
 
-        let transcript = "";
+    let transcript = "";
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
+    for (let i = event.resultIndex; i < event.results.length; i++) {
 
-            transcript += event.results[i][0].transcript;
+        const result = event.results[i];
+
+        console.log("---------");
+
+        for (let j = 0; j < result.length; j++) {
+
+            console.log(
+                "Alternative:",
+                result[j].transcript,
+                "Confidence:",
+                result[j].confidence
+            );
 
         }
 
-        document.getElementById("question").value = transcript;
-
-        if (event.results[event.results.length - 1].isFinal &&
-    transcript.trim() !== ""
-) {
-    askQuestion();
-}
-
-    };recognition.onresult = (event) => {
-
-    let transcript = "";
-
-    // Build the full transcript every time
-    for (let i = 0; i < event.results.length; i++) {
-
-        transcript += event.results[i][0].transcript;
+        transcript += result[0].transcript;
 
     }
 
     document.getElementById("question").value = transcript;
 
-    // Send only once the final result is ready
     if (
         event.results[event.results.length - 1].isFinal &&
         transcript.trim() !== ""
     ) {
-
         askQuestion();
-
     }
 
 };
